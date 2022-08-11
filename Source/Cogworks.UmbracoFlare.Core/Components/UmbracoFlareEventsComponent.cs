@@ -1,9 +1,9 @@
-﻿using Cogworks.UmbracoFlare.Core.Constants;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Cogworks.UmbracoFlare.Core.Constants;
 using Cogworks.UmbracoFlare.Core.Extensions;
 using Cogworks.UmbracoFlare.Core.Helpers;
 using Cogworks.UmbracoFlare.Core.Services;
-using System.Collections.Generic;
-using System.Linq;
 using Umbraco.Core;
 using Umbraco.Core.Composing;
 using Umbraco.Core.Events;
@@ -60,14 +60,17 @@ namespace Cogworks.UmbracoFlare.Core.Components
                 urls.AddRange(_umbracoFlareDomainService.GetUrlsForNode(content.Id, currentDomain));
             }
 
-            var result = _cloudflareService.PurgePages(urls);
+            if (urls.Count > 0)
+            {
+                var result = _cloudflareService.PurgePages(urls);
 
-            e.Messages.Add(result.Success
-                ? new EventMessage(ApplicationConstants.EventMessageCategory.CloudflareCaching,
-                "Successfully purged the cloudflare cache.", EventMessageType.Success)
-                : new EventMessage(ApplicationConstants.EventMessageCategory.CloudflareCaching,
-                    "We could not purge the Cloudflare cache. Please check the logs to find out more.",
-                    EventMessageType.Warning));
+                e.Messages.Add(result.Success
+                    ? new EventMessage(ApplicationConstants.EventMessageCategory.CloudflareCaching,
+                    "Successfully purged the cloudflare cache.", EventMessageType.Success)
+                    : new EventMessage(ApplicationConstants.EventMessageCategory.CloudflareCaching,
+                        "We could not purge the Cloudflare cache. Please check the logs to find out more.",
+                        EventMessageType.Warning));
+            }
         }
 
         public void Terminate()
@@ -143,14 +146,17 @@ namespace Cogworks.UmbracoFlare.Core.Components
                 }
             }
 
-            var fullUrls = UmbracoFlareUrlHelper.MakeFullUrlsWithDomain(urls, currentDomain, true);
-            var result = _cloudflareService.PurgePages(fullUrls);
+            if (urls.Count > 0)
+            {
+                var fullUrls = UmbracoFlareUrlHelper.MakeFullUrlsWithDomain(urls, currentDomain, true);
+                var result = _cloudflareService.PurgePages(fullUrls);
 
-            e.Messages.Add(result.Success
-                ? new EventMessage(ApplicationConstants.EventMessageCategory.CloudflareCaching,
-                    "Successfully purged the cloudflare cache.", EventMessageType.Success)
-                : new EventMessage(ApplicationConstants.EventMessageCategory.CloudflareCaching,
-                    "We could not purge the Cloudflare cache.", EventMessageType.Warning));
+                e.Messages.Add(result.Success
+                    ? new EventMessage(ApplicationConstants.EventMessageCategory.CloudflareCaching,
+                        "Successfully purged the cloudflare cache.", EventMessageType.Success)
+                    : new EventMessage(ApplicationConstants.EventMessageCategory.CloudflareCaching,
+                        "We could not purge the Cloudflare cache.", EventMessageType.Warning));
+            }
         }
 
         private static void AddPurgeCacheForContentMenu(TreeControllerBase sender, MenuRenderingEventArgs e)
